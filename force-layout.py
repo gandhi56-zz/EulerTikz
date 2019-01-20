@@ -20,9 +20,11 @@ class Window(Tk):
         self.nodes = list()
         self.edges = list()
         self.coor = {}
+        self.nodeLabels = {}
         for i in range(NUM_NODES):
             self.coor[str(i)] = (random.randint(0, WIN_WIDTH), 
                                 random.randint(0, WIN_HEIGHT))
+            self.nodeLabels[str(i)] = str(i)
         self.dnd = None
         self.lines = list()
         self.adjList = {}
@@ -35,7 +37,10 @@ class Window(Tk):
 
         x = self.coor[lbl][0]
         y = self.coor[lbl][1]
-        self.canvas.create_oval(x, y, x+SIZE, y+SIZE, fill = "pink", tags="draggable")
+        self.canvas.create_window(x, y, tags="draggable", anchor=CENTER, window=Label(self, bg="pink", text=lbl))
+
+        # self.canvas.create_oval(x, y, x+SIZE, y+SIZE, fill = "pink", tags="draggable")
+        # self.canvas.create_text(x+SIZE//2, y+SIZE//2, fill="blue", text=self.nodeLabels[lbl], tags="draggable")
         self.canvas.tag_bind("draggable", "<ButtonPress-1>", self.button_press)
         self.canvas.tag_bind("draggable", "<Button1-Motion>", self.button_motion)
         self.canvas.update()

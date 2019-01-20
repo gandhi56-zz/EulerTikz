@@ -40,6 +40,7 @@ UNSELECTED = 0
 SELECTING = 1
 SELECTED = 2
 DRAGGING = 3
+DRAG_SELECT = 4
 selectStatus = UNSELECTED
 point0 = None
 point1 = None
@@ -127,7 +128,6 @@ class Canvas:
                         mousePos = event.pos
                         for u in self.nodes:
                             if self.nodes[u].collided(mousePos):
-                                # mouseDragging = True
                                 selectStatus = DRAGGING
                                 draggingNode = u
                                 offsetX = self.nodes[u].pos[0] - mousePos[0]
@@ -141,11 +141,17 @@ class Canvas:
                         selectStatus = UNSELECTED
 
                     elif selectStatus == SELECTED:
-                        selectStatus = UNSELECTED
-
+                        mousePos = event.pos
                         for u in self.nodes:
-                            self.nodes[u].highlight = False
+                            if self.nodes[u].collided(mousePos) and self.nodes[u].highlight:
+                                offsetX = self.nodes[u].pos[0] - mousePos[0]
+                                offsetY = self.nodes[u].pos[1] - mousePos[1]
+                                break
+                            else:
+                                selectStatus = SELECTING
+                                point0 = mousePos
 
+                        selectStatus = DRAG_SELECT
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
@@ -170,11 +176,23 @@ class Canvas:
                     elif selectStatus == SELECTED:
                         selectStatus = DRAGGING
 
+                    elif selectStatus == DRAG_SELECT:
+                        selectStatus = UNSELECTED
+                        offsetX = offsetY = 0
+
+                        for u in self.nodes:
+                            self.nodes[u].highlight = False
+
             elif event.type == pygame.MOUSEMOTION:
+                mousePos = event.pos
                 if selectStatus == DRAGGING:
-                    mousePos = event.pos
                     self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
                     self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
+                elif selectStatus == DRAG_SELECT:
+                    for u in self.nodes:
+                        if self.nodes[u].highlight:
+                            self.nodes[u].pos[0] = mousePos[0] + offsetX
+                            self.nodes[u].pos[1] = mousePos[1] + offsetY
  
         return False
  
@@ -195,7 +213,7 @@ class Canvas:
             self.nodes[u].draw(screen)
         
         # draw selection if applicable
-        if selectStatus == SELECTING or selectStatus == SELECTED:
+        if selectStatus == SELECTING:
             self.draw_selection(screen)
         pygame.display.flip()
 

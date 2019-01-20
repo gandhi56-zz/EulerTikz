@@ -37,12 +37,15 @@ offsetY = 0
 UNSELECTED = 0
 SELECTING = 1
 SELECTED = 2
-DRAGGING = 3
+DRAG_1 = 3
 DRAG_SELECT = 4
 DRAG = 5
 selectStatus = UNSELECTED
 point0 = None
 point1 = None
+
+mouse0 = None
+mouse1 = None
 
 selectedNodes = dict()
 # ------------------------------------------------------------------------
@@ -114,13 +117,10 @@ class Canvas:
     
     def process_events(self):
         global mouseDragging, offsetX, offsetY, draggingNode
-        global selectedNodes, selectStatus, point0, point1
+        global selectedNodes, selectStatus, point0, point1, oldMouse
 
         """ Process all of the events. Return a "True" if we need
             to close the window. """
-
-        print(selectStatus)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
@@ -131,35 +131,47 @@ class Canvas:
                         mousePos = event.pos
                         for u in self.nodes:
                             if self.nodes[u].collided(mousePos):
-                                selectStatus = DRAGGING
+                                # a node is clicked upon, drag the node
+                                # until mousebutton has been released
+                                selectStatus = DRAG_1
                                 draggingNode = u
                                 offsetX = self.nodes[u].pos[0] - mousePos[0]
                                 offsetY = self.nodes[u].pos[1] - mousePos[1]
                                 break
                             else:
+                                # User clicked on the screen, start creating
+                                # a selection rectangle
                                 selectStatus = SELECTING
                                 point0 = mousePos
 
                     elif selectStatus == SELECTING:
+                        # selection rectangle was being drawn,
+                        # go back to unselected state
                         selectStatus = UNSELECTED
 
                     elif selectStatus == SELECTED:
-                        mousePos = event.pos
-                        for u in self.nodes:
-                            if self.nodes[u].collided(mousePos) and self.nodes[u].highlight:
-                                offsetX = self.nodes[u].pos[0] - mousePos[0]
-                                offsetY = self.nodes[u].pos[1] - mousePos[1]
-                                break
-                            else:
-                                selectStatus = SELECTING
-                                point0 = mousePos
-
+                        # selection was done, prepare for DRAG_1
+                        # each node along, mouse click should find
+                        # assigns one of the selected nodes as the
+                        # origin node.
                         selectStatus = DRAG_SELECT
+
+            elif event.type == pygame.MOUSEMOTION:
+                mousePos = event.pos
+                if selectStatus == DRAG_1:
+                    self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
+                    self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
+                elif selectStatus == DRAG_SELECT:
+                    for u in self.nodes:
+                        if self.nodes[u].highlight and u != draggingNode:
+                            self.nodes[u].pos[0] += offsetX
+                            self.nodes[u].pos[1] += offsetY
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 mousePos = event.pos
                 if event.button == 1:
-                    if selectStatus == DRAGGING:
+                    if selectStatus == DRAG_1:
+                        # DRAG_1 in progress
                         selectStatus = UNSELECTED
                         offsetX = offsetY = 0
                         draggingNode = None
@@ -179,15 +191,22 @@ class Canvas:
                         selectedNodes = dict()
                         for u in self.nodes:
                             if self.nodes[u].selected():
-                                selectedNodes[u] = (
-                                    self.nodes[u].pos[0] - self.nodes[draggingNode].pos[0],
-                                    self.nodes[u].pos[1] - self.nodes[draggingNode].pos[1]
-                                )
                                 self.nodes[u].highlight = True
+                                selectedNodes[u] = [0,0]
+
+                        # draggingNode = list(selectedNodes.keys())[0]
+
+                        # for u in self.nodes:
+                        #     if self.nodes[u].selected() and u != draggingNode:
+                        #         selectedNodes[u] = (
+                        #             self.nodes[u].pos[0] - self.nodes[draggingNode].pos[0],
+                        #             self.nodes[u].pos[1] - self.nodes[draggingNode].pos[1]
+                        #         )
 
                         print(selectedNodes)
                     elif selectStatus == SELECTED:
-                        selectStatus = DRAGGING
+                        selectStatus = DRAG_1
+                        oldMouse = mousePos
 
                     elif selectStatus == DRAG_SELECT:
                         selectStatus = UNSELECTED
@@ -199,24 +218,6 @@ class Canvas:
                     elif selectStatus == DRAG:
                         selectStatus = UNSELECTED
                         offsetX = offsetY = 0
-
-            elif event.type == pygame.MOUSEMOTION:
-                mousePos = event.pos
-                if selectStatus == DRAGGING:
-                    self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
-                    self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
-                elif selectStatus == DRAG_SELECT:
-
-                    self.nodes[draggingNode].pos[0] += offsetX
-                    self.nodes[draggingNode].pos[1] += offsetY
-                    origin = self.nodes[draggingNode].pos
-
-                    for u in self.nodes:
-                        if self.nodes[u].highlight and u != draggingNode:
-                            print("updating node", u)
-
-                            self.nodes[u].pos[0] = selectedNodes[u][0] - origin[0]
-                            self.nodes[u].pos[1] = selectedNodes[u][1] - origin[1]
  
         return False
  

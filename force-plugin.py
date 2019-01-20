@@ -46,8 +46,6 @@ DRAG = 5
 selectStatus = UNSELECTED
 point0 = None
 point1 = None
-
-GraphData = ""
 # ------------------------------------------------------------------------
 # --- Classes ---
 
@@ -325,20 +323,20 @@ class Layout():
 
         matches = re.compile(r'(\\(?:begin|end)\{tikzpicture\})').finditer(s)
         matches = [(m.start(0), m.end(0)) for m in matches]
-        GraphData = s[matches[0][1]:matches[1][0]]
+        graphData = s[matches[0][1]:matches[1][0]]
 
-        nodeData = re.findall(r'\\node(.+);', GraphData)
+        nodeData = re.findall(r'\\node(.+);', graphData)
 
         nodeData = [re.sub(r'(\$)', "", re.findall(r'\{(.*)\}', n)[0]) for n in nodeData]
         print(nodeData)
 
 
-        edgeData = re.findall(r'\((.*)\)(?:.*)(?:edge|--)(?:.*)\((.*)\)', GraphData)
+        edgeData = re.findall(r'\((.*)\)(?:.*)(?:edge|--)(?:.*)\((.*)\)', graphData)
 
         print(edgeData)
 
         n, m = len(nodeData), len(edgeData)
-        coor = re.findall(r'(?:at.*)\((\d+,\d+)\)', GraphData)
+        coor = re.findall(r'(?:at.*)\((\d+,\d+)\)', graphData)
 
         # laplacian matrix
         L = [[0]*n for i in range(n)]

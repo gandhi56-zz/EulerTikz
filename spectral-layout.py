@@ -4,12 +4,15 @@ import numpy as np
 
 SIZE = 300
 SHIFT = 50
+MAXEDGE = 25.0
 
 # spring-force for pushing nearby vertices apart
 def hook(p, q, k=100.0):
     dx = p[0] - q[0]
     dy = p[1] - q[1]
     ds = math.sqrt(dx*dx + dy*dy)
+
+    # if ds >= MAXEDGE: return 0, 0
     return k*dx/ds, k*dy/ds
 
 # coloumbic force for drawing distant vertices closer
@@ -19,6 +22,8 @@ def coloumb(p, q, k=0.5):
     ds3 = math.pow(dx*dx + dy*dy, 1.5)
     Fx = k * dx / ds3
     Fy = k * dy / ds3
+
+    # if ds <= MAXEDGE: return 0, 0
     return Fx, Fy
 
 # relative layout is found using spectral layout;
@@ -53,6 +58,8 @@ def getCoordinates(L):
     coor = list(zip(coor[0], coor[1]))
     v = [(0,0)] * n
 
+    print(coor)
+
     # force-based spacing
     dt, m, steps = 1e-2, 1.0, 6
     for _ in range(steps):
@@ -66,6 +73,7 @@ def getCoordinates(L):
                 y = coor[i][1] + vy * dt
                 coor[i], v[i] = (x, y), (vx, vy)
 
+    print(coor)
     # (x, y) coordinates for each vertex
     return list(map(lambda x: (int(x[0]), int(x[1])), coor))
 
@@ -122,19 +130,43 @@ canvas.pack()
 
 nodes = [Button(canvas, text=str(i), command = clicked) for i in range(n)]
 for i in range(n):
-    canvas.create_window(*coor[i], window=nodes[i]) 
+    nodes[i] = canvas.create_window(*coor[i], window = nodes[i]) 
 
 print(coor)
 for e in edges:
     print(e)
     canvas.create_line(*coor[e[0]], *coor[e[1]])
 
-for _ in range(100):
+v = [(0,0)] * n
+dt = 1e-2
+canvas.move(nodes[0], 20, 20)
 
-def close_window():
-    master.destroy()
+
+def close_window(): master.destroy()
 
 exit_btn = Button(master, text = "Close", command = close_window)
 exit_btn.pack()
+
+"""
+while True:
+        for i in range(n):
+            Fx = Fy = 0
+            for j in range(n):
+                if i == j: continue
+                fx, fy = hook(coor[i], coor[j], 15) if L[i][j] else coloumb(coor[i], coor[j], 0.5)
+                print("{} - {}".format())
+
+                Fx += fx
+                Fy += fy
+            
+            vx = v[i][0] + Fx / m * dt
+            vy = v[i][1] + Fy / m * dt
+            x = coor[i][0] + vx * dt
+            y = coor[i][1] + vy * dt
+            canvas.move(nodes[i], vx*dt, vy*dt)
+            coor[i], v[i] = (x, y), (vx, vy)
+        
+        canvas.update()
+"""
 
 canvas.mainloop()

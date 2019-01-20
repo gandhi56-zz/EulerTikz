@@ -4,13 +4,16 @@ s = ""
 for line in sys.stdin:
     s += line;
 
-string = "@@ cat $$ @@dog$^"
+nodeData = re.findall(r'\\node(.+);', s)
 
-print(re.findall(r'\tikzpicture(.*?)\tikzpicture', s))
-graphTex = re.findall(r'(tikzpicture)(.*?)(tikzpicture)', s)
+print("nodes:")
+for nd in nodeData:
+    print(re.findall(r'\{(.*)\}', nd))
 
-print(graphTex)
+edgeData = re.findall(r'(\(.*\))(?:.*)edge(?:.*)(\(.*\))', s)
 
+for e in edgeData:
+    print("{} <-> {}".format(e[0], e[1]))
 
 # nodes = re.findall(r'{tikzpicture}.*?/path', graphTex)
 

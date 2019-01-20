@@ -1,25 +1,18 @@
 import re, sys
 
 s = ""
-for line in sys.stdin:
-    s += line;
+for line in sys.stdin: s += line;
 
-nodeData = re.findall(r'\\node(.+);', s)
+matches = re.compile(r'(\\(?:begin|end)\{tikzpicture\})').finditer(s)
+matches = [(m.start(0), m.end(0)) for m in matches]
+graphData = s[matches[0][1]:matches[1][0]]
 
-print("nodes:")
-for nd in nodeData:
-    print(re.findall(r'\{(.*)\}', nd))
+nodeData = re.findall(r'\\node(.+);', graphData)
 
-edgeData = re.findall(r'(\(.*\))(?:.*)edge(?:.*)(\(.*\))', s)
+nodeData = [re.sub(r'(\$)', "", re.findall(r'\{(.*)\}', n)[0]) for n in nodeData]
+print(nodeData)
+
+edgeData = re.findall(r'(\(.*\))(?:.*)(?:edge|--)(?:.*)(\(.*\))', graphData)
 
 for e in edgeData:
     print("{} <-> {}".format(e[0], e[1]))
-
-# nodes = re.findall(r'{tikzpicture}.*?/path', graphTex)
-
-# print(nodes)
-
-# nodes = re.findall(r'{.*?}', nodes)
-
-# print(nodes)
-

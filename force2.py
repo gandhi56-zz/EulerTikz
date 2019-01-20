@@ -3,27 +3,44 @@ import numpy as np
 
  
 # --- Global constants ---
+# ------------------------------------------------------------------------
+# Color constants
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
- 
+BLUE = (0, 0, 255)
+LIGHTBLUE = (182, 204, 239)
+PINK = (255, 175, 175)
+
+# Screen dimensions
 SCREEN_WIDTH = 700
 SCREEN_HEIGHT = 500
- 
+
+BACKCOLOR = LIGHTBLUE
+
+# Spectral layout variables
 SCALE = SCREEN_HEIGHT * 3 // 5
 SHIFT = SCALE // 6
 
+# Graph drawing variables
 NUM_NODES = 100
 NUM_EDGES = 100
-
 NODE_RAD = 15
 
+# Event handling variables
 mouseDragging = False
 draggingNode = None
 offsetX = 0
 offsetY = 0
 
+UNSELECTED = 0
+SELECTING = 1
+SELECTED = 2
+selectStatus = UNSELECTED
+point0 = None
+point1 = None
+# ------------------------------------------------------------------------
 # --- Classes ---
 
 class Node():
@@ -35,12 +52,18 @@ class Node():
         self.text = self.font.render(label, True, BLACK)
     def draw(self, screen):
         pygame.draw.circle(screen, BLACK, self.pos, self.rad)
-        pygame.draw.circle(screen, self.color, self.pos, self.rad-1)
+        pygame.draw.circle(screen, self.color, self.pos, self.rad-2)
         screen.blit(self.text, [self.pos[0]-self.rad//2, self.pos[1]-self.rad//2])
     def collided(self, pos):
         dx = self.pos[0] - pos[0]
         dy = self.pos[1] - pos[1]
         return dx*dx + dy*dy <= self.rad*self.rad
+    def selected(self):
+    	maxX = max(point0[0], point1[0])
+    	minX = min(point0[0], point1[0])
+    	maxY = max(point0[1], point1[1])
+    	minY = min(point0[1], point1[1])
+    	return minX <= self.pos[0] <= maxX and minY <= self.pos[1] <= maxY
  
 class Canvas:
     """ This class represents an instance of the game. If we need to
@@ -54,10 +77,10 @@ class Canvas:
         self.adjList = {} # adjacency list rep of a graph
 
 
-        print(coor)
+        # print(coor)
         for i in range(NUM_NODES):
             self.add_node(str(i), min(max(0, coor[i][0]), SCREEN_WIDTH),
-                    min(max(0, coor[i][1]), SCREEN_HEIGHT), NODE_RAD, GREEN)
+                    min(max(0, coor[i][1]), SCREEN_HEIGHT), NODE_RAD, PINK)
        
         for u, v in edges:
             self.adjList[u].append(v)
@@ -83,6 +106,7 @@ class Canvas:
     def process_events(self):
 
         global mouseDragging, offsetX, offsetY, draggingNode
+        global mouseSelecting, point0, point1
 
         """ Process all of the events. Return a "True" if we need
             to close the window. """
@@ -91,22 +115,41 @@ class Canvas:
                 return True
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    mouseDragging = True
+                if event.button == 1 and not mouseDragging:
                     mousePos = event.pos
-
                     for u in self.nodes:
                         if self.nodes[u].collided(mousePos):
+                            selectStatus = UNSELECTED
+                            mouseDragging = True
                             draggingNode = u
                             offsetX = self.nodes[u].pos[0] - mousePos[0]
                             offsetY = self.nodes[u].pos[1] - mousePos[1]
+                        else:
+                            selectStatus = SELECTING
+                        	point0 = mousePos
+
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    mouseDragging = False
+                	if mouseDragging:
+	                    mouseDragging = False
+	                    offsetX = offsetY = 0
+	                    draggingNode = None
+	                elif mouseSelecting:
+	                	# mouseSelecting = False
+	                	point1 = event.pos
+
+	                	# find all nodes lying in the selection box
+	                	selectedNodes = []
+	                	for u in self.nodes:
+	                		if self.nodes[u].selected():
+	                			selectedNodes.append(u)
+
+	                	print(selectedNodes)
+
 
             elif event.type == pygame.MOUSEMOTION:
-                if mouseDragging:
+                if mouseDragging and draggingNode is not None:
                     mousePos = event.pos
                     self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
                     self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
@@ -118,18 +161,38 @@ class Canvas:
  
     def display_frame(self, screen):
         """ Display everything to the screen for the game. """
-        screen.fill(WHITE)
+        screen.fill(BACKCOLOR)
 
+        # draw graph
         for e in self.edges:
             pygame.draw.line(screen, BLACK,
                        (self.nodes[e[0]].pos[0],self.nodes[e[0]].pos[1]),
                        (self.nodes[e[1]].pos[0],self.nodes[e[1]].pos[1]),
                     )
-
         for u in self.nodes:
             self.nodes[u].draw(screen)
+        
+        # draw selection if applicable
+        if mouseSelecting:
+        	self.draw_selection(screen)
         pygame.display.flip()
- 
+
+    def draw_selection(self, screen):
+    	global point0
+    	mousePos = pygame.mouse.get_pos()
+    	width = min(abs(mousePos[0] - point0[0]), abs(SCREEN_WIDTH - point0[0]))
+    	height = min(abs(mousePos[1] - point0[1]), abs(SCREEN_HEIGHT - point0[1]))
+    	surf = pygame.Surface((width, height), pygame.SRCALPHA)
+    	surf.fill((0,0,255, 64))
+
+    	startPos = list(point0)
+    	if mousePos[0] < point0[0]:
+    		startPos[0] = mousePos[0]
+
+    	if mousePos[1] < point0[1]:
+    		startPos[1] = mousePos[1]
+
+    	screen.blit(surf, startPos)
 
 class Layout():
     # spring-force for pushing nearby vertices apart
@@ -161,10 +224,10 @@ class Layout():
 
         n = len(L)
 
-        print("laplacian: ")
+        # print("laplacian: ")
         A = np.array(L)
 
-        print(A)
+        # print(A)
 
         # determine relative placement of vertices using spectral layout
         eigval, eigvec = np.linalg.eigh(A)
@@ -184,7 +247,7 @@ class Layout():
         coor = list(zip(coor[0], coor[1]))
         v = [(0,0)] * n
 
-        print(coor)
+        # print(coor)
 
         # force-based spacing
         dt, m, steps = 1e-2, 1.0, 6
@@ -199,8 +262,8 @@ class Layout():
                     y = coor[i][1] + vy * dt
                     coor[i], v[i] = (x, y), (vx, vy)
 
-        print("coordinates:")
-        print(coor)
+        # print("coordinates:")
+        # print(coor)
         # (x, y) coordinates for each vertex
         return list(map(lambda x: (int(x[0]), int(x[1])), coor))
 
@@ -226,45 +289,29 @@ class Layout():
         return coor, edges
 
 def main():
-    """ Main program function. """
-    global mouseDragging, draggingNode, offsetX, offsetY
     mouseDragging = False
     draggingNode = None
     offsetX = 0
     offsetY = 0
 
-    # Initialize Pygame and set up the window
     pygame.init()
  
     size = [SCREEN_WIDTH, SCREEN_HEIGHT]
     screen = pygame.display.set_mode(size)
  
-    pygame.display.set_caption("My Game")
+    pygame.display.set_caption("Graph drawing using spectral layout")
     pygame.mouse.set_visible(True)
 
-    # Create our objects and set the data
     done = False
     clock = pygame.time.Clock()
  
-    # Create an instance of the Game class
     canvas = Canvas(*Layout.parser())
 
-    # Main game loop
     while not done:
- 
-        # Process events (keystrokes, mouse clicks, etc)
-        done = canvas.process_events()
- 
-        # Update object positions, check for collisions
-        canvas.run_logic()
- 
-        # Draw the current frame
-        canvas.display_frame(screen)
- 
-        # Pause for the next frame
-        clock.tick(60)
- 
-    # Close window and exit
+    	done = canvas.process_events()
+    	canvas.run_logic()
+    	canvas.display_frame(screen)
+    	clock.tick(60)
     pygame.quit()
 
 # Call the main function, start up the game

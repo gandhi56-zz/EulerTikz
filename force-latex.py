@@ -1,4 +1,4 @@
-import math, random, bisect, pygame
+import math, bisect, pygame
 import re, sys
 import numpy as np
 
@@ -27,7 +27,7 @@ SHIFT = SCALE // 6
 # Graph drawing variables
 NUM_NODES = 100
 NUM_EDGES = 100
-NODE_RAD = 15
+NODE_RAD = 35
 
 # Event handling variables
 mouseDragging = False
@@ -40,12 +40,15 @@ mouseSelecting = False
 UNSELECTED = 0
 SELECTING = 1
 SELECTED = 2
-DRAGGING = 3
+DRAG_1 = 3
 DRAG_SELECT = 4
 DRAG = 5
 selectStatus = UNSELECTED
 point0 = None
 point1 = None
+
+oldMouse = (42, 42)
+selectedNodes = dict()
 # ------------------------------------------------------------------------
 # --- Classes ---
 
@@ -82,20 +85,12 @@ class Canvas:
  
     def __init__(self, nodes, coor = list(), edges = list()):
 
-        print(coor)
-        print(edges)
         self.nodes = dict()
         self.edges = []
-        self.adjList = dict() # adjacency list rep of a graph
-
-
-        print("before adding nodes")
-        # print(coor)
+        self.adjList = dict()
         for i in range(NUM_NODES):
             self.add_node(nodes[i], min(max(0, coor[i][0]), SCREEN_WIDTH),
                     min(max(0, coor[i][1]), SCREEN_HEIGHT), NODE_RAD, PINK)
-       
-        print("added nodes")
         for u, v in edges:
             self.adjList[u].append(v)
             self.adjList[v].append(u)
@@ -118,9 +113,8 @@ class Canvas:
         self.adjList[node1].append(node0)
     
     def process_events(self):
-
         global mouseDragging, offsetX, offsetY, draggingNode
-        global mouseSelecting, selectStatus, point0, point1
+        global selectedNodes, selectStatus, point0, point1, oldMouse
 
         """ Process all of the events. Return a "True" if we need
             to close the window. """
@@ -134,34 +128,50 @@ class Canvas:
                         mousePos = event.pos
                         for u in self.nodes:
                             if self.nodes[u].collided(mousePos):
-                                selectStatus = DRAGGING
+                                # a node is clicked upon, drag the node
+                                # until mousebutton has been released
+                                selectStatus = DRAG_1
                                 draggingNode = u
-                                offsetX = self.nodes[u].pos[0] - mousePos[0]
-                                offsetY = self.nodes[u].pos[1] - mousePos[1]
+                                # offsetX = self.nodes[u].pos[0] - mousePos[0]
+                                # offsetY = self.nodes[u].pos[1] - mousePos[1]
                                 break
                             else:
+                                # User clicked on the screen, start creating
+                                # a selection rectangle
                                 selectStatus = SELECTING
                                 point0 = mousePos
 
                     elif selectStatus == SELECTING:
+                        # selection rectangle was being drawn,
+                        # go back to unselected state
                         selectStatus = UNSELECTED
 
                     elif selectStatus == SELECTED:
-                        mousePos = event.pos
-                        for u in self.nodes:
-                            if self.nodes[u].collided(mousePos) and self.nodes[u].highlight:
-                                offsetX = self.nodes[u].pos[0] - mousePos[0]
-                                offsetY = self.nodes[u].pos[1] - mousePos[1]
-                                break
-                            else:
-                                selectStatus = SELECTING
-                                point0 = mousePos
-
+                        # selection was done, prepare for DRAG_1
+                        # each node along, mouse click should find
+                        # assigns one of the selected nodes as the
+                        # origin node.
                         selectStatus = DRAG_SELECT
 
+            elif event.type == pygame.MOUSEMOTION:
+                mousePos = event.pos
+                offsetX = mousePos[0] - oldMouse[0]
+                offsetY = mousePos[1] - oldMouse[1]
+                if selectStatus == DRAG_1:
+                    self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
+                    self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
+                elif selectStatus == DRAG_SELECT:
+                    for u in self.nodes:
+                        if self.nodes[u].highlight:
+                            self.nodes[u].pos[0] += offsetX
+                            self.nodes[u].pos[1] += offsetY
+                oldMouse = mousePos
+
             elif event.type == pygame.MOUSEBUTTONUP:
+                mousePos = event.pos
                 if event.button == 1:
-                    if selectStatus == DRAGGING:
+                    if selectStatus == DRAG_1:
+                        # DRAG_1 in progress
                         selectStatus = UNSELECTED
                         offsetX = offsetY = 0
                         draggingNode = None
@@ -171,39 +181,33 @@ class Canvas:
                         selectStatus = SELECTED
                         point1 = event.pos
 
+                        for u in self.nodes:
+                            if self.nodes[u].collided(mousePos):
+                                draggingNode = u
+
                         # find all nodes lying in the selection box
-                        selectedNodes = []
+                        selectedNodes = dict()
                         for u in self.nodes:
                             if self.nodes[u].selected():
-                                selectedNodes.append(u)
                                 self.nodes[u].highlight = True
+                                selectedNodes[u] = [0,0]
 
-                        print(selectedNodes)
                     elif selectStatus == SELECTED:
-                        selectStatus = DRAGGING
+                        selectStatus = DRAG_1
+                        oldMouse = event.pos
 
                     elif selectStatus == DRAG_SELECT:
                         selectStatus = UNSELECTED
                         offsetX = offsetY = 0
-
+                        oldMouse = event.pos
                         for u in self.nodes:
                             self.nodes[u].highlight = False
 
-            elif event.type == pygame.MOUSEMOTION:
-                mousePos = event.pos
-                if selectStatus == DRAGGING:
-                    self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
-                    self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
-                elif selectStatus == DRAG_SELECT:
-                    for u in self.nodes:
-                        if self.nodes[u].highlight:
-                            self.nodes[u].pos[0] = mousePos[0] + offsetX
-                            self.nodes[u].pos[1] = mousePos[1] + offsetY
+                    elif selectStatus == DRAG:
+                        selectStatus = UNSELECTED
+                        offsetX = offsetY = 0
  
         return False
- 
-    def run_logic(self):
-        pass
  
     def display_frame(self, screen):
         """ Display everything to the screen for the game. """
@@ -269,11 +273,7 @@ class Layout():
     def getCoordinates(L):
 
         n = len(L)
-
-        # print("laplacian: ")
         A = np.array(L)
-
-        # print(A)
 
         # determine relative placement of vertices using spectral layout
         eigval, eigvec = np.linalg.eigh(A)
@@ -293,8 +293,6 @@ class Layout():
         coor = list(zip(coor[0], coor[1]))
         v = [(0,0)] * n
 
-        # print(coor)
-
         # force-based spacing
         dt, m, steps = 1e-2, 1.0, 6
         for _ in range(steps):
@@ -307,10 +305,6 @@ class Layout():
                     x = coor[i][0] + vx * dt
                     y = coor[i][1] + vy * dt
                     coor[i], v[i] = (x, y), (vx, vy)
-
-        # print("coordinates:")
-        # print(coor)
-        # (x, y) coordinates for each vertex
         return list(map(lambda x: (int(x[0]), int(x[1])), coor))
 
     def parser():
@@ -324,17 +318,9 @@ class Layout():
         matches = re.compile(r'(\\(?:begin|end)\{tikzpicture\})').finditer(s)
         matches = [(m.start(0), m.end(0)) for m in matches]
         graphData = s[matches[0][1]:matches[1][0]]
-
         nodeData = re.findall(r'\\node(.+);', graphData)
-
         nodeData = [re.sub(r'(\$)', "", re.findall(r'\{(.*)\}', n)[0]) for n in nodeData]
-        print(nodeData)
-
-
         edgeData = re.findall(r'\((.*)\)(?:.*)(?:edge|--)(?:.*)\((.*)\)', graphData)
-
-        print(edgeData)
-
         n, m = len(nodeData), len(edgeData)
         coor = re.findall(r'(?:at.*)\((\d+,\d+)\)', graphData)
 
@@ -375,7 +361,6 @@ def main():
 
     while not done:
         done = canvas.process_events()
-        canvas.run_logic()
         canvas.display_frame(screen)
         clock.tick(60)
     pygame.quit()

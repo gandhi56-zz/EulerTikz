@@ -44,9 +44,7 @@ selectStatus = UNSELECTED
 point0 = None
 point1 = None
 
-mouse0 = None
-mouse1 = None
-
+oldMouse = (42, 42)
 selectedNodes = dict()
 # ------------------------------------------------------------------------
 # --- Classes ---
@@ -135,8 +133,8 @@ class Canvas:
                                 # until mousebutton has been released
                                 selectStatus = DRAG_1
                                 draggingNode = u
-                                offsetX = self.nodes[u].pos[0] - mousePos[0]
-                                offsetY = self.nodes[u].pos[1] - mousePos[1]
+                                # offsetX = self.nodes[u].pos[0] - mousePos[0]
+                                # offsetY = self.nodes[u].pos[1] - mousePos[1]
                                 break
                             else:
                                 # User clicked on the screen, start creating
@@ -158,14 +156,17 @@ class Canvas:
 
             elif event.type == pygame.MOUSEMOTION:
                 mousePos = event.pos
+                offsetX = mousePos[0] - oldMouse[0]
+                offsetY = mousePos[1] - oldMouse[1]
                 if selectStatus == DRAG_1:
                     self.nodes[draggingNode].pos[0] = mousePos[0] + offsetX
                     self.nodes[draggingNode].pos[1] = mousePos[1] + offsetY
                 elif selectStatus == DRAG_SELECT:
                     for u in self.nodes:
-                        if self.nodes[u].highlight and u != draggingNode:
+                        if self.nodes[u].highlight:
                             self.nodes[u].pos[0] += offsetX
                             self.nodes[u].pos[1] += offsetY
+                oldMouse = mousePos
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 mousePos = event.pos
@@ -203,15 +204,14 @@ class Canvas:
                         #             self.nodes[u].pos[1] - self.nodes[draggingNode].pos[1]
                         #         )
 
-                        print(selectedNodes)
                     elif selectStatus == SELECTED:
                         selectStatus = DRAG_1
-                        oldMouse = mousePos
+                        oldMouse = event.pos
 
                     elif selectStatus == DRAG_SELECT:
                         selectStatus = UNSELECTED
                         offsetX = offsetY = 0
-
+                        oldMouse = event.pos
                         for u in self.nodes:
                             self.nodes[u].highlight = False
 

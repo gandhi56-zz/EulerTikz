@@ -42,6 +42,7 @@ SELECTING = 1
 SELECTED = 2
 DRAGGING = 3
 DRAG_SELECT = 4
+DRAG = 5
 selectStatus = UNSELECTED
 point0 = None
 point1 = None

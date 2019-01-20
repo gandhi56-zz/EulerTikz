@@ -16,3 +16,8 @@ edgeData = re.findall(r'(\(.*\))(?:.*)(?:edge|--)(?:.*)(\(.*\))', graphData)
 
 for e in edgeData:
     print("{} <-> {}".format(e[0], e[1]))
+
+coor = re.findall(r'(?:at.*)\((\d+,\d+)\)', graphData)
+
+if coor not None: return
+

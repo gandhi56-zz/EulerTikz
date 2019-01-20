@@ -119,27 +119,4 @@ dim = 500
 
 # coor = [(random.randint(0, dim), random.randint(0, dim)) for _ in range(n)]
 
-
-"""
-while True:
-        for i in range(n):
-            Fx = Fy = 0
-            for j in range(n):
-                if i == j: continue
-                fx, fy = hook(coor[i], coor[j], 15) if L[i][j] else coloumb(coor[i], coor[j], 0.5)
-                print("{} - {}".format())
-
-                Fx += fx
-                Fy += fy
-            
-            vx = v[i][0] + Fx / m * dt
-            vy = v[i][1] + Fy / m * dt
-            x = coor[i][0] + vx * dt
-            y = coor[i][1] + vy * dt
-            canvas.move(nodes[i], vx*dt, vy*dt)
-            coor[i], v[i] = (x, y), (vx, vy)
-        
-        canvas.update()
-"""
-
 canvas.mainloop()

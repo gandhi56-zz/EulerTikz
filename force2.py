@@ -59,11 +59,11 @@ class Node():
         dy = self.pos[1] - pos[1]
         return dx*dx + dy*dy <= self.rad*self.rad
     def selected(self):
-    	maxX = max(point0[0], point1[0])
-    	minX = min(point0[0], point1[0])
-    	maxY = max(point0[1], point1[1])
-    	minY = min(point0[1], point1[1])
-    	return minX <= self.pos[0] <= maxX and minY <= self.pos[1] <= maxY
+        maxX = max(point0[0], point1[0])
+        minX = min(point0[0], point1[0])
+        maxY = max(point0[1], point1[1])
+        minY = min(point0[1], point1[1])
+        return minX <= self.pos[0] <= maxX and minY <= self.pos[1] <= maxY
  
 class Canvas:
     """ This class represents an instance of the game. If we need to
@@ -126,26 +126,26 @@ class Canvas:
                             offsetY = self.nodes[u].pos[1] - mousePos[1]
                         else:
                             selectStatus = SELECTING
-                        	point0 = mousePos
+                            point0 = mousePos
 
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                	if mouseDragging:
-	                    mouseDragging = False
-	                    offsetX = offsetY = 0
-	                    draggingNode = None
-	                elif mouseSelecting:
-	                	# mouseSelecting = False
-	                	point1 = event.pos
+                    if mouseDragging:
+                        mouseDragging = False
+                        offsetX = offsetY = 0
+                        draggingNode = None
+                    elif selectStatus == :
+                        # mouseSelecting = False
+                        point1 = event.pos
 
-	                	# find all nodes lying in the selection box
-	                	selectedNodes = []
-	                	for u in self.nodes:
-	                		if self.nodes[u].selected():
-	                			selectedNodes.append(u)
+                        # find all nodes lying in the selection box
+                        selectedNodes = []
+                        for u in self.nodes:
+                            if self.nodes[u].selected():
+                                selectedNodes.append(u)
 
-	                	print(selectedNodes)
+                        print(selectedNodes)
 
 
             elif event.type == pygame.MOUSEMOTION:
@@ -174,25 +174,25 @@ class Canvas:
         
         # draw selection if applicable
         if mouseSelecting:
-        	self.draw_selection(screen)
+            self.draw_selection(screen)
         pygame.display.flip()
 
     def draw_selection(self, screen):
-    	global point0
-    	mousePos = pygame.mouse.get_pos()
-    	width = min(abs(mousePos[0] - point0[0]), abs(SCREEN_WIDTH - point0[0]))
-    	height = min(abs(mousePos[1] - point0[1]), abs(SCREEN_HEIGHT - point0[1]))
-    	surf = pygame.Surface((width, height), pygame.SRCALPHA)
-    	surf.fill((0,0,255, 64))
+        global point0
+        mousePos = pygame.mouse.get_pos()
+        width = min(abs(mousePos[0] - point0[0]), abs(SCREEN_WIDTH - point0[0]))
+        height = min(abs(mousePos[1] - point0[1]), abs(SCREEN_HEIGHT - point0[1]))
+        surf = pygame.Surface((width, height), pygame.SRCALPHA)
+        surf.fill((0,0,255, 64))
 
-    	startPos = list(point0)
-    	if mousePos[0] < point0[0]:
-    		startPos[0] = mousePos[0]
+        startPos = list(point0)
+        if mousePos[0] < point0[0]:
+            startPos[0] = mousePos[0]
 
-    	if mousePos[1] < point0[1]:
-    		startPos[1] = mousePos[1]
+        if mousePos[1] < point0[1]:
+            startPos[1] = mousePos[1]
 
-    	screen.blit(surf, startPos)
+        screen.blit(surf, startPos)
 
 class Layout():
     # spring-force for pushing nearby vertices apart
@@ -308,10 +308,10 @@ def main():
     canvas = Canvas(*Layout.parser())
 
     while not done:
-    	done = canvas.process_events()
-    	canvas.run_logic()
-    	canvas.display_frame(screen)
-    	clock.tick(60)
+        done = canvas.process_events()
+        canvas.run_logic()
+        canvas.display_frame(screen)
+        clock.tick(60)
     pygame.quit()
 
 # Call the main function, start up the game

@@ -119,33 +119,6 @@ dim = 500
 
 # coor = [(random.randint(0, dim), random.randint(0, dim)) for _ in range(n)]
 
-def clicked():
-    print("clicked registered")
-
-master = Tk()
-master.title("Force-based Graph Layout")
-
-canvas = Canvas(master, width=500, height=500)
-canvas.pack()
-
-nodes = [Button(canvas, text=str(i), command = clicked) for i in range(n)]
-for i in range(n):
-    nodes[i] = canvas.create_window(*coor[i], window = nodes[i]) 
-
-print(coor)
-for e in edges:
-    print(e)
-    canvas.create_line(*coor[e[0]], *coor[e[1]])
-
-v = [(0,0)] * n
-dt = 1e-2
-canvas.move(nodes[0], 20, 20)
-
-
-def close_window(): master.destroy()
-
-exit_btn = Button(master, text = "Close", command = close_window)
-exit_btn.pack()
 
 """
 while True:

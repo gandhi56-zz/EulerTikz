@@ -41,6 +41,7 @@ SELECTING = 1
 SELECTED = 2
 DRAGGING = 3
 DRAG_SELECT = 4
+DRAG = 5
 selectStatus = UNSELECTED
 point0 = None
 point1 = None
@@ -112,12 +113,14 @@ class Canvas:
         self.adjList[node1].append(node0)
     
     def process_events(self):
-
         global mouseDragging, offsetX, offsetY, draggingNode
         global mouseSelecting, selectStatus, point0, point1
 
         """ Process all of the events. Return a "True" if we need
             to close the window. """
+
+        print(selectStatus)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
@@ -183,6 +186,10 @@ class Canvas:
                         for u in self.nodes:
                             self.nodes[u].highlight = False
 
+                    elif selectStatus == DRAG:
+                        selectStatus = UNSELECTED
+                        offsetX = offsetY = 0
+
             elif event.type == pygame.MOUSEMOTION:
                 mousePos = event.pos
                 if selectStatus == DRAGGING:
@@ -191,8 +198,9 @@ class Canvas:
                 elif selectStatus == DRAG_SELECT:
                     for u in self.nodes:
                         if self.nodes[u].highlight:
-                            self.nodes[u].pos[0] = mousePos[0] + offsetX
-                            self.nodes[u].pos[1] = mousePos[1] + offsetY
+                            print("updating node", u)
+                            self.nodes[u].pos[0] += offsetX
+                            self.nodes[u].pos[1] += offsetY
  
         return False
  

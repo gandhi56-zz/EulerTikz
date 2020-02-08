@@ -47,12 +47,8 @@ selectStatus = UNSELECTED
 point0 = None
 point1 = None
 
-<<<<<<< HEAD
 oldMouse = (42, 42)
 selectedNodes = dict()
-=======
-GraphData = ""
->>>>>>> 824b0586f54f995cddc80e5733495f098040ced3
 # ------------------------------------------------------------------------
 # --- Classes ---
 

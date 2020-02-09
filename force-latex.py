@@ -317,12 +317,6 @@ class Layout():
 
         matches = re.compile(r'(\\(?:begin|end)\{tikzpicture\})').finditer(s)
         matches = [(m.start(0), m.end(0)) for m in matches]
-<<<<<<< HEAD
-        graphData = s[matches[0][1]:matches[1][0]]
-        nodeData = re.findall(r'\\node(.+);', graphData)
-        nodeData = [re.sub(r'(\$)', "", re.findall(r'\{(.*)\}', n)[0]) for n in nodeData]
-        edgeData = re.findall(r'\((.*)\)(?:.*)(?:edge|--)(?:.*)\((.*)\)', graphData)
-=======
         GraphData = s[matches[0][1]:matches[1][0]]
 
         nodeData = re.findall(r'\\node(.+);', GraphData)
@@ -335,7 +329,6 @@ class Layout():
 
         print(edgeData)
 
->>>>>>> 824b0586f54f995cddc80e5733495f098040ced3
         n, m = len(nodeData), len(edgeData)
         coor = re.findall(r'(?:at.*)\((\d+,\d+)\)', GraphData)
 

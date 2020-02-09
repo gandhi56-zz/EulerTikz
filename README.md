@@ -1,16 +1,27 @@
 # Eulertikz
 
 ## Project Overview
-EulerTikz is a visualization tool for discrete graphs, or networks. The tool includes a Latex Parser that extracts a graph encoded using the tikzpicture in a relative placement format and generate a visualization of the corresponding graph.
+EulerTikz is an implementation of graph drawing algorithms in Python3, with rendering in matplotlib. Currently, EulerTikz includes an implementation the force-based layout algorithm for simple connected undirected unlabelled graphs.
 
 ## Utilities
 The dependencies include:
 * Python 3.x.x
 * Numpy
-* Pygame
+* matplotlib
 
 ## How to use
-To run the program over a Tex document, simply input the .tex file through stdin and run force-latex.py.
+1. Run `python3 main.py`
+2. Input graph in the format
+```
+<number of vertices> <number of edges>
+<vertex> <vertex>
+.
+.
+.
+<vertex> <vertex>
+
+```
+where each pair of vertex labels preceding the first line denotes an edge.
 
 ## Methods
 * Firstly, spectral layout was used to determine the relative positions of the vertices. Using the eigenvectors corresponding to the smallest positive eigenvalues of the Laplacian, we obtain the coordinates for the ith vertex by using ith entries of the eigenvectors.

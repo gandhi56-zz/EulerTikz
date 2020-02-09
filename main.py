@@ -14,18 +14,21 @@ maxy = 100
 node_rad = 1
 nodes = {}  # stores the node shape objects
 
+scale = (maxy - miny) * 3 // 5
+shift = scale // 6
 class Node:
   def __init__(self, xx=None, yy=None):
     self.x = xx
     self.y = yy
     if self.x is None:
-      self.x = rand(minx+10, maxx-10)
+      self.x = rand(minx+5, maxx-5)
     if self.y is None:
-      self.y = rand(miny+10, maxy-10)
+      self.y = rand(miny+5, maxy-5)
     self.shape = plt.Circle((self.x, self.y), node_rad)
     self.adj = set()
 
   def get_shape(self):
+    self.shape = plt.Circle((self.x, self.y), node_rad)
     return self.shape
 
   def adj_node(self, u):
@@ -34,6 +37,7 @@ class Node:
   def set_coor(self, tup):
     self.x = tup[0]
     self.y = tup[1]
+    self.get_shape()
   
   def draw(self, ax):
     ax.add_patch(plt.Circle((self.x, self.y), node_rad))
@@ -64,7 +68,7 @@ def random_edges(m):
 
 ###############################################################################
 # force-based layout algorithm
-
+# TODO implement it for disconnected graphs 
 
 def hook(p, q, k=100.0):
   dx = p[0] - q[0]
@@ -81,8 +85,6 @@ def coloumb(p, q, k=0.5):
   return fx, fy
 
 def force_layout():
-  scale = (maxy - miny) * 3 // 5
-  shift = scale // 6
   n = len(nodes)  # number of nodes
   L = [[0]*n for i in range(n)] # Laplacian matrix
   for u in nodes:
@@ -101,6 +103,8 @@ def force_layout():
       coor[-1] += abs(min(coor[-1])) + shift
     if len(coor) >= 2:
       break
+  if len(coor) == 0:
+    return None
 
   coor = list(zip(coor[0], coor[1]))
   v = [(0,0)] * n
@@ -120,6 +124,53 @@ def force_layout():
   return list(map(lambda x : (int(x[0]), int(x[1])), coor))
 ###############################################################################
 
+
+###############################################################################
+# spectral layout algorithm
+def spectral_layout():
+  # compute the Laplacian of the input graph
+  n = len(nodes)  # number of nodes
+  L = [[0]*n for i in range(n)] # Laplacian matrix
+  for u in nodes:
+    for v in nodes[u].adj:
+      L[u][v] = L[v][u] = -1
+      L[u][u] += 1
+      L[v][v] += 1
+  
+  A = np.array(L)
+  eigval, eigvec = np.linalg.eigh(A)
+  coor = []
+  for i in range(n):
+    if eigval[i] > eps:
+      coor.append(eigvec[:,i])
+      coor[-1] *= scale
+      coor[-1] += abs(min(coor[-1])) + shift
+
+  # compute the two smallest nonzero eigenvalues of L
+  w, v = np.linalg.eig(L)
+  e1, e2 = -1, -1
+  for i in range(n):
+    if e1 == -1:
+      e1 = i
+    else:
+      if e2 == -1:
+        e2 = i
+      else:
+        if w[i] < w[e2]:
+          if w[i] < w[e1]:
+            e1 = i
+          else:
+            e2 = i
+
+  # compute the corresponding eigenvectors
+  vec1, vec2 = v[:, e1], v[:, e2]
+
+  for u in nodes:
+    nodes[u].set_coor( (vec1[u]*scale + shift, vec2[u]*scale + shift) )
+
+###############################################################################
+
+
 def draw_line(ax, u, v):
   ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x], 
                             [nodes[u].y, nodes[v].y]))
@@ -131,19 +182,35 @@ def draw_graph(ax):
       draw_line(ax, u, v)
 
 if __name__ == '__main__':
-  fig, (ax1, ax2) = plt.subplots(1, 2, sharex='col', sharey='row',
+  fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col', sharey='row',
                         gridspec_kw={'hspace': 0, 'wspace': 0})
+  
+  # draw input graph -----------------------------------------------
   input_graph()
   draw_graph(ax1)
+  ax1.set_title('Input graph')
   ax1.plot()
+  # ----------------------------------------------------------------
 
+  # draw force-based layout output ---------------------------------
   coor = force_layout()
-  for u in nodes:
-    nodes[u].set_coor(coor[u])
+  if coor is not None:
+    for u in nodes:
+      nodes[u].set_coor(coor[u])
   draw_graph(ax2)
+  ax2.set_title('Force-based layout')
   ax2.plot()
+  # ----------------------------------------------------------------
+  
+  # draw spectral layout output ------------------------------------
+  ax3.set_title('Spectral layout')
+  spectral_layout()
+  draw_graph(ax3)
+  ax3.plot()
+  # ----------------------------------------------------------------
+  
+  
   plt.show()
-
 
 
 

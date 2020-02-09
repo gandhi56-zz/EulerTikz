@@ -135,18 +135,17 @@ def init_window():
 
 if __name__ == '__main__':
   
-  fig1, ax1 = plt.subplots()
+  fig, (ax1, ax2) = plt.subplots(1, 2, sharex='col', sharey='row',
+                        gridspec_kw={'hspace': 0, 'wspace': 0})
   input_graph()
-  init_window()
   draw_graph(ax1)
+  ax1.plot()
 
-  fig2, ax2 = plt.subplots()
-  init_window()
   coor = force_layout()
   for u in nodes:
     nodes[u].set_coor(coor[u])
-    print(nodes[u].x, nodes[u].y)
   draw_graph(ax2)
+  ax2.plot()
   plt.show()
 
 

@@ -14,10 +14,6 @@ maxy = 100
 node_rad = 1
 nodes = {}  # stores the node shape objects
 
-# for force based layout algorithm
-scale = (maxy - miny) * 3 // 5
-shift = scale // 6
-
 class Node:
   def __init__(self, xx=None, yy=None):
     self.x = xx
@@ -66,7 +62,10 @@ def random_edges(m):
     nodes[v].adj_node(u)
     m -= 1
 
-# force-based layout algorithm -------------------------------------
+###############################################################################
+# force-based layout algorithm
+
+
 def hook(p, q, k=100.0):
   dx = p[0] - q[0]
   dy = p[1] - q[1]
@@ -82,6 +81,8 @@ def coloumb(p, q, k=0.5):
   return fx, fy
 
 def force_layout():
+  scale = (maxy - miny) * 3 // 5
+  shift = scale // 6
   n = len(nodes)  # number of nodes
   L = [[0]*n for i in range(n)] # Laplacian matrix
   for u in nodes:
@@ -98,7 +99,6 @@ def force_layout():
       coor.append(eigvec[:,i])
       coor[-1] *= scale
       coor[-1] += abs(min(coor[-1])) + shift
-
     if len(coor) >= 2:
       break
 
@@ -118,7 +118,7 @@ def force_layout():
         coor[i], v[i] = (x, y), (vx, vy)
 
   return list(map(lambda x : (int(x[0]), int(x[1])), coor))
-# ------------------------------------------------------------------
+###############################################################################
 
 def draw_line(ax, u, v):
   ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x], 
@@ -130,11 +130,7 @@ def draw_graph(ax):
     for v in nodes[u].adj:
       draw_line(ax, u, v)
 
-def init_window():
-  plt.axis([minx, maxx, miny, maxy])
-
 if __name__ == '__main__':
-  
   fig, (ax1, ax2) = plt.subplots(1, 2, sharex='col', sharey='row',
                         gridspec_kw={'hspace': 0, 'wspace': 0})
   input_graph()

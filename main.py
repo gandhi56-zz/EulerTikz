@@ -23,9 +23,9 @@ class Node:
     self.x = xx
     self.y = yy
     if self.x is None:
-      self.x = rand(minx+5, maxx-5)
+      self.x = rand(minx+10, maxx-10)
     if self.y is None:
-      self.y = rand(miny+5, maxy-5)
+      self.y = rand(miny+10, maxy-10)
     self.shape = plt.Circle((self.x, self.y), node_rad)
     self.adj = set()
 
@@ -38,6 +38,9 @@ class Node:
   def set_coor(self, tup):
     self.x = tup[0]
     self.y = tup[1]
+  
+  def draw(self, ax):
+    ax.add_patch(plt.Circle((self.x, self.y), node_rad))
 
 def show(patch):
   ax.add_patch(patch)
@@ -51,7 +54,6 @@ def input_graph():
     x, y = map(int, input().split())
     if x not in nodes:
       nodes[x] = []
-    nodes[y].adj_node(x)
     nodes[x].adj_node(y)
 
 def random_edges(m):
@@ -118,41 +120,34 @@ def force_layout():
   return list(map(lambda x : (int(x[0]), int(x[1])), coor))
 # ------------------------------------------------------------------
 
+def draw_line(ax, u, v):
+  ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x], 
+                            [nodes[u].y, nodes[v].y]))
 
-def draw_graph():
-  ax = plt.gca()
-  
-  # render -------------------------------
-  # nodes
+def draw_graph(ax):
   for u in nodes:
-    ax.add_patch(nodes[u].get_shape())
-
-  # edges
-  for u in nodes:
+    nodes[u].draw(ax)
     for v in nodes[u].adj:
-      ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x], [nodes[u].y, nodes[v].y]))
+      draw_line(ax, u, v)
+
+def init_window():
+  plt.axis([minx, maxx, miny, maxy])
 
 if __name__ == '__main__':
-  plt.axis([minx, maxx, miny, maxy])
+  
+  fig1, ax1 = plt.subplots()
   input_graph()
-  random_edges(1)
+  init_window()
+  draw_graph(ax1)
 
+  fig2, ax2 = plt.subplots()
+  init_window()
   coor = force_layout()
-  ax = plt.gca()
   for u in nodes:
     nodes[u].set_coor(coor[u])
-    ax.add_patch(nodes[u].get_shape())
-    for v in nodes[u].adj:
-      ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x], [nodes[u].y, nodes[v].y]))
-
+    print(nodes[u].x, nodes[u].y)
+  draw_graph(ax2)
   plt.show()
-
-
-
-
-
-
-
 
 
 

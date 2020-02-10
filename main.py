@@ -71,12 +71,18 @@ def random_edges(m):
 # TODO implement it for disconnected graphs 
 
 def hook(p, q, k=100.0):
+  '''
+    scales distance between p and q by k
+  '''
   dx = p[0] - q[0]
   dy = p[1] - q[1]
-  ds = (dx*dx + dy*dy)**0.5
+  ds = (dx*dx + dy*dy)**0.5 # distance between p and q
   return k*dx/ds, k*dy/ds
 
 def coloumb(p, q, k=0.5):
+  '''
+    scales distance
+  '''
   dx = q[0] - p[0]
   dy = q[1] - p[1]
   ds3 = (dx*dx + dy*dy)**1.5
@@ -85,6 +91,11 @@ def coloumb(p, q, k=0.5):
   return fx, fy
 
 def force_layout():
+  '''
+
+  '''
+
+  # compute Laplacian of component
   n = len(nodes)  # number of nodes
   L = [[0]*n for i in range(n)] # Laplacian matrix
   for u in nodes:
@@ -93,6 +104,9 @@ def force_layout():
       L[u][u] += 1
       L[v][v] += 1
 
+  # find two eigenvalues of the Laplacian matrix
+  # with sufficiently large magnitude
+  # rescale and translate
   A = np.array(L)
   eigval, eigvec = np.linalg.eigh(A)
   coor = []
@@ -106,9 +120,10 @@ def force_layout():
   if len(coor) == 0:
     return None
 
+
   coor = list(zip(coor[0], coor[1]))
   v = [(0,0)] * n
-  dt, m, steps = 1e-2, 1.0, 6
+  dt, m, steps = 1e-2, 1.0, 10
   for _ in range(steps):
     for i in range(n):
       for j in range(n):
@@ -182,7 +197,7 @@ def draw_graph(ax):
       draw_line(ax, u, v)
 
 if __name__ == '__main__':
-  fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col', sharey='row',
+  fig, (ax1, ax2) = plt.subplots(1, 2, sharex='col', sharey='row',
                         gridspec_kw={'hspace': 0, 'wspace': 0})
   
   # draw input graph -----------------------------------------------
@@ -203,10 +218,10 @@ if __name__ == '__main__':
   # ----------------------------------------------------------------
   
   # draw spectral layout output ------------------------------------
-  ax3.set_title('Spectral layout')
-  spectral_layout()
-  draw_graph(ax3)
-  ax3.plot()
+  #ax3.set_title('Spectral layout')
+  #spectral_layout()
+  #draw_graph(ax3)
+  #ax3.plot()
   # ----------------------------------------------------------------
   
   

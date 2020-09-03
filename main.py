@@ -38,7 +38,7 @@ class Node:
     self.x = tup[0]
     self.y = tup[1]
     self.get_shape()
-  
+
   def draw(self, ax):
     ax.add_patch(plt.Circle((self.x, self.y), node_rad))
 
@@ -68,7 +68,7 @@ def random_edges(m):
 
 ###############################################################################
 # force-based layout algorithm
-# TODO implement it for disconnected graphs 
+# TODO implement it for disconnected graphs
 
 def hook(p, q, k=100.0):
   '''
@@ -151,7 +151,7 @@ def spectral_layout():
       L[u][v] = L[v][u] = -1
       L[u][u] += 1
       L[v][v] += 1
-  
+
   A = np.array(L)
   eigval, eigvec = np.linalg.eigh(A)
   coor = []
@@ -187,7 +187,7 @@ def spectral_layout():
 
 
 def draw_line(ax, u, v):
-  ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x], 
+  ax.add_line(lines.Line2D([nodes[u].x, nodes[v].x],
                             [nodes[u].y, nodes[v].y]))
 
 def draw_graph(ax):
@@ -199,7 +199,7 @@ def draw_graph(ax):
 if __name__ == '__main__':
   fig, (ax1, ax2) = plt.subplots(1, 2, sharex='col', sharey='row',
                         gridspec_kw={'hspace': 0, 'wspace': 0})
-  
+
   # draw input graph -----------------------------------------------
   input_graph()
   draw_graph(ax1)
@@ -216,15 +216,15 @@ if __name__ == '__main__':
   ax2.set_title('Force-based layout')
   ax2.plot()
   # ----------------------------------------------------------------
-  
+
   # draw spectral layout output ------------------------------------
   #ax3.set_title('Spectral layout')
   #spectral_layout()
   #draw_graph(ax3)
   #ax3.plot()
   # ----------------------------------------------------------------
-  
-  
+
+
   plt.show()
 
 

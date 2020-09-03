@@ -1,0 +1,89 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>EulerTikz.md</title><style></style></head><body id="preview">
+<h1 class="code-line" data-line-start=0 data-line-end=1><a id="EulerTikz_0"></a>EulerTikz</h1>
+<h2 class="code-line" data-line-start=2 data-line-end=3><a id="Project_Overview_2"></a>Project Overview</h2>
+<p class="has-line-data" data-line-start="3" data-line-end="4">EulerTikz is an implementation of graph drawing algorithms in Python3, with rendering in matplotlib. Currently, EulerTikz includes an implementation the force-based layout algorithm for simple connected undirected unlabelled graphs.</p>
+<h2 class="code-line" data-line-start=5 data-line-end=6><a id="Utilities_5"></a>Utilities</h2>
+<p class="has-line-data" data-line-start="6" data-line-end="7">The dependencies include:</p>
+<ul>
+<li class="has-line-data" data-line-start="7" data-line-end="8">Python 3.x.x</li>
+<li class="has-line-data" data-line-start="8" data-line-end="9">Numpy</li>
+<li class="has-line-data" data-line-start="9" data-line-end="11">matplotlib</li>
+</ul>
+<h2 class="code-line" data-line-start=11 data-line-end=12><a id="How_to_use_11"></a>How to use</h2>
+<ol>
+<li class="has-line-data" data-line-start="12" data-line-end="13">Run <code>python3 main.py</code></li>
+<li class="has-line-data" data-line-start="13" data-line-end="14">Input graph in the format</li>
+</ol>
+<pre><code class="has-line-data" data-line-start="15" data-line-end="23">&lt;number of vertices&gt; &lt;number of edges&gt;
+&lt;vertex&gt; &lt;vertex&gt;
+.
+.
+.
+&lt;vertex&gt; &lt;vertex&gt;
+
+</code></pre>
+<p class="has-line-data" data-line-start="23" data-line-end="24">where each pair of vertex labels preceding the first line denotes an edge.</p>
+<h2 class="code-line" data-line-start=25 data-line-end=26><a id="Forcebased_layout_25"></a>Force-based layout</h2>
+<p class="has-line-data" data-line-start="26" data-line-end="27">Force-based layout algorithm simulates the idea of a physical system of attractive spring forces along edges and repulsive forces caused due to the vertices. Given a simple undirected graph $G$, we first compute the Laplacian matrix $L$ of $G$. Then, we find two sufficiently large eigenvalues of $L$ and apply appropriate linear adjustments to their corresponding eigenvectors. We then repeatedly apply the spring forces to every pair of vertices, forces are stronger between adjacent vertices than between nonadjacent vertices.</p>
+<h3 class="code-line" data-line-start=28 data-line-end=29><a id="Running_time_analysis_28"></a>Running time analysis</h3>
+<p class="has-line-data" data-line-start="29" data-line-end="30">Let $G$ be a simple undirected graph of order $n$ and size $m$. Construction of the Laplacian $L$ of $G$ requires $O(n)$ operations. Eigenvalues can be found in $O(n)$ operations. Finally, applying forces between every pair of vertices takes $O(n^{2})$ time per step. Hence, the total running time of computing the graph drawing function is $O(kn^{2})$, where $k$ is the number of times spring forces are applied between every pair of vertices.</p>
+<h3 class="code-line" data-line-start=31 data-line-end=32><a id="Advantages_31"></a>Advantages</h3>
+<ul>
+<li class="has-line-data" data-line-start="32" data-line-end="33">simple to understand</li>
+<li class="has-line-data" data-line-start="33" data-line-end="35">can detect symmetric representations</li>
+</ul>
+<h3 class="code-line" data-line-start=35 data-line-end=36><a id="Disadvantages_35"></a>Disadvantages</h3>
+<ul>
+<li class="has-line-data" data-line-start="36" data-line-end="37">not always optimal, cannot draw trees well</li>
+<li class="has-line-data" data-line-start="37" data-line-end="38">does not necessarily minimize crossing number, for instance $Q_{3}$</li>
+<li class="has-line-data" data-line-start="38" data-line-end="40">some graphs may require a large number of iterations to find a solution, hence the algorithm can practically be slow</li>
+</ul>
+<h3 class="code-line" data-line-start=40 data-line-end=41><a id="Examples_40"></a>Examples</h3>
+<ul>
+<li class="has-line-data" data-line-start="41" data-line-end="43">$C_{4}$
+<ul>
+<li class="has-line-data" data-line-start="42" data-line-end="43"><img src="examples/1.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="43" data-line-end="45">Cube graph
+<ul>
+<li class="has-line-data" data-line-start="44" data-line-end="45"><img src="examples/2.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="45" data-line-end="47">House graph
+<ul>
+<li class="has-line-data" data-line-start="46" data-line-end="47"><img src="examples/3.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="47" data-line-end="49">$K_{4}$
+<ul>
+<li class="has-line-data" data-line-start="48" data-line-end="49"><img src="examples/4.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="49" data-line-end="51">$K_{5}$
+<ul>
+<li class="has-line-data" data-line-start="50" data-line-end="51"><img src="examples/5.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="51" data-line-end="53">Peterson’s graph
+<ul>
+<li class="has-line-data" data-line-start="52" data-line-end="53"><img src="examples/6.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="53" data-line-end="55">Tree of order 4
+<ul>
+<li class="has-line-data" data-line-start="54" data-line-end="55"><img src="examples/7.png" alt=""></li>
+</ul>
+</li>
+<li class="has-line-data" data-line-start="55" data-line-end="58">Tree of order 10
+<ul>
+<li class="has-line-data" data-line-start="56" data-line-end="58"><img src="examples/8.png" alt=""></li>
+</ul>
+</li>
+</ul>
+<h3 class="code-line" data-line-start=58 data-line-end=59><a id="Issues_58"></a>Issues</h3>
+<ul>
+<li class="has-line-data" data-line-start="59" data-line-end="60">Modify force-based layout to draw any simple undirected graph by simply detecting components and ensuring components do not coincide with other components of the graph</li>
+<li class="has-line-data" data-line-start="60" data-line-end="61">Implement spectral layout algorithm</li>
+</ul>
+</body></html>
